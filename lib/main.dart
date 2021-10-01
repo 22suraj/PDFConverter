@@ -85,7 +85,8 @@ class _MyPDFList extends State<MyPDFList> {
     List<StorageInfo> storageInfo = await PathProviderEx.getStorageInfo();
     var root = storageInfo[0]
         .rootDir; //storageInfo[1] for SD card, geting the root directory
-    var fm = FileManager(root: Directory("/storage/emulated/0/AltroneDrive")); //
+    var fm =
+        FileManager(root: Directory("/storage/emulated/0/AltroneDrive")); //
     files = await fm.filesTree(
         excludedPaths: ["/storage/emulated/0/Android"],
         extensions: ["pdf"] //optional, to filter files, list only pdf files
@@ -205,6 +206,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final picker = ImagePicker();
   final pdf = pw.Document();
+  String _error = 'No Error Dectected';
   List<File> _image = [];
 
   @override
@@ -273,13 +275,28 @@ class _MyAppState extends State<MyApp> {
         });
   }
 
+  String _platformMessage = 'No Error';
+  late List images;
+  int maxImageNo = 10;
+  bool selectSingleImage = false;
+
   getImageFromGallery(ImageSource source) async {
-    final pickedFile = await picker.getImage(source: source);
+    if (source == ImageSource.camera) {
+      final pickedFile = await picker.getImage(source: source);
+      setState(() {
+        if (pickedFile != null) {
+          _image.add(File(pickedFile.path));
+        } else {
+          print('No image selected');
+        }
+      });
+      return;
+    }
+
+    final List<XFile>? images = await picker.pickMultiImage();
     setState(() {
-      if (pickedFile != null) {
-        _image.add(File(pickedFile.path));
-      } else {
-        print('No image selected');
+      for (int i = 0; i < images!.length; i++) {
+        _image.add(File(images[i].path));
       }
     });
   }
